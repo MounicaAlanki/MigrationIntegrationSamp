@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<file:config name="File_Config1" doc:name="File Config" doc:id="54d76d49-de0b-4699-9293-95a56761e046" >
+		<file:connection workingDir="D:\" />
+	</file:config>
+	<flow name="batch-job--processing-sample-schedular-flow" doc:id="c82e299e-e36c-4493-b1c2-2a797976ff0b" >
+		<scheduler doc:name="Scheduler" doc:id="e8e9e4f8-df25-4493-8647-24b4c22d5ae9" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="If event Source System API call" doc:id="1a1e886a-d108-4533-8d19-27ba03806bf3" />
+		<flow-ref doc:name="batch-job--processing-sample-flow" doc:id="26b8117c-3e2b-4137-b546-1db81b9ca39d" name="batch-job--processing-sample-flow"/>
+	</flow>
+	<flow name="batch-job--processing-sample-polling-flow" doc:id="79e6db74-5526-47ac-9e6c-c61849b3baa2" >
+		<file:listener doc:name="On New or Updated File" doc:id="bd2c4094-b248-4299-aa33-649c31cce590" config-ref="File_Config1">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</file:listener>
+		<flow-ref doc:name="batch-job--processing-sample-flow" doc:id="48a0095d-64bb-4fd2-a757-1a36d3564b79" name="batch-job--processing-sample-flow" />
+	</flow>
+	<flow name="batch-job--processing-sample-flow" doc:id="78f9ad64-ebba-4e9c-89e0-cc284b0be2bd" >
+		<batch:job jobName="batch-job--processing-sampleBatch_Job" doc:id="61b065fe-7cc9-4cd6-9aa3-160bfea91c6d" >
+			<batch:process-records >
+				<batch:step name="Enrichment_Batch_Step" doc:id="1b49caf8-c560-474f-9b4f-df4026b6ae46" >
+					<logger level="INFO" doc:name="Enrichment Logic" doc:id="b01675c0-9b4d-4f9b-a519-2146334ada0f" />
+				</batch:step>
+				<batch:step name="Transformation_Target_System_Batch_Step" doc:id="3a9ead48-8268-4cea-b50a-31a5c97cae8a" >
+					<logger level="INFO" doc:name="Transformation Logic" doc:id="ac9228b9-0661-4b01-a53d-c59bcdbf58de" />
+					<logger level="INFO" doc:name="Target System API call" doc:id="723bf0e1-5900-47d5-8535-bdc63ee56f41" />
+				</batch:step>
+				<batch:step name="Error_Handling" doc:id="6559eb18-5fff-49c3-9987-4f551df0e014" >
+					<logger level="INFO" doc:name="For Every Failed Record" doc:id="bb4e6ba5-13f7-4dd0-bc3c-c55c82748b70" />
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="ea5a29ef-ac35-4a86-ae28-13adc58d463b" streaming="true">
+						<logger level="INFO" doc:name="For All Failed Record" doc:id="40ea0519-f246-477d-8062-2f51f44f8db9" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Send Migration Report" doc:id="d06d40f7-4bc4-42b3-b9d6-72ee5006115b" />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
